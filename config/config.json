@@ -1,0 +1,25 @@
+{
+  "development": {
+    "username": "root",
+    "password": "root",
+    "database": "beerdiary_development",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": "3306"
+  },
+  "test": {
+    "username": "root",
+    "password": "root",
+    "database": "beerdiary_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "use_env_variable": "JAWSDB_URL",
+    "username": "root",  
+    "password": "root",
+    "database": "gxefwxu0om6w9nqd",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}

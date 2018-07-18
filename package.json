@@ -1,0 +1,31 @@
+{
+  "name": "usastateparks",
+  "version": "1.0.0",
+  "description": "Web app that will provide an api to get US State Parks",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "test.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarontkennedy/usaStateParks.git"
+  },
+  "author": "Aaron Kennedy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aarontkennedy/usaStateParks/issues"
+  },
+  "homepage": "https://github.com/aarontkennedy/usaStateParks#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cheerio": "^1.0.0-rc.2",
+    "express": "^4.16.3",
+    "express-handlebars": "^3.0.0",
+    "mongoose": "^5.2.4",
+    "request": "^2.87.0"
+  }
+}
