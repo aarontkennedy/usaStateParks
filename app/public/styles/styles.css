@@ -1,0 +1,94 @@
+body, html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+  color: grey;
+}
+
+header {
+  background-color:white;
+  color: grey;
+}
+
+section {
+    flex: 1 0 auto;
+    background-color:white;
+    color: black;
+}
+
+.jumbotron {
+  background: url("/images/jayCooke.jpg") no-repeat center center; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  color: white;
+  min-height: 500px;
+  text-align:center;
+}
+
+.jumbotron h1 {
+  margin-top: 2em;
+  font-size: 350%;
+  font-weight: bolder;
+}
+.jumbotron h2 {
+  font-size: 200%;
+  font-weight: bolder;
+}
+
+.jumbotron ul {
+  font-size: 125%;
+  font-weight: bold;
+  list-style-type: none;
+  text-align: left;
+  margin: 1em auto;
+  width: 500px;
+  max-width: 100%;
+}
+
+form.label, form.input, form.button {
+  display:inline-block;
+}
+
+#queryResult {
+  font-family: "Courier New", Courier, monospace;
+  min-height: 300px;
+  border: thick solid grey;
+  border-radius: .5em;
+  margin-bottom: 2em;
+  padding: .5em;
+}
+
+footer {
+    flex-shrink: 0;
+    text-align:center;
+}
+
+footer ul {
+    list-style-type: none;
+    text-align: center;
+    background-color:white;
+    color: black;
+}
+
+footer ul li {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+footer ul li:after {
+  content: " | ";
+}
+
+footer ul li:last-child:after {
+  content: "";
+}
+

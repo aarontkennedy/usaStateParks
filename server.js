@@ -3,18 +3,12 @@
 const express = require("express");
 const exphbs = require("express-handlebars");
 const bodyParser = require("body-parser");
-var mongoose = require("mongoose");
+//var mongoose = require("mongoose");
 
 // Require all models
-var db = require("./models");
+//var db = require("./models");
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/usaStateParks");
-
-// Our scraping tools
-// Axios is a promised-based http library, similar to jQuery's Ajax method
-// It works on the client and on the server
-var axios = require("axios");
-var cheerio = require("cheerio");
+//mongoose.connect("mongodb://localhost/usaStateParks");
 
 // Sets up the Express App
 // =========================================================

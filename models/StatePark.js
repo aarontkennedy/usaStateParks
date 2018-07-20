@@ -11,7 +11,7 @@ var StateParkSchema = new Schema({
   county: { type: String, required: true },
   state: { type: String, required: true },
   country: { type: String, default: "USA" },
-  dateEstablished: {
+  yearEstablished: {
     type: Number,
     validate: {
       validator: Number.isInteger,
@@ -25,6 +25,11 @@ var StateParkSchema = new Schema({
     /* http://urlregex.com */
     match: /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/,
   },
+  wikiURL: {
+    type: String,
+    /* http://urlregex.com */
+    match: /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/,
+  },
   // `body` is of type String
   remarks: String
 });
@@ -32,5 +37,5 @@ var StateParkSchema = new Schema({
 // This creates our model from the above schema, using mongoose's model method
 var StatePark = mongoose.model("StatePark", StateParkSchema);
 
-// Export the Note model
-module.exports = Note;
+// Export the StatePark model
+module.exports = StatePark;
