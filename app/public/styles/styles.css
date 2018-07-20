@@ -60,6 +60,8 @@ form.label, form.input, form.button {
 #queryResult {
   font-family: "Courier New", Courier, monospace;
   min-height: 300px;
+  max-height: 400px;
+  overflow: scroll;
   border: thick solid grey;
   border-radius: .5em;
   margin-bottom: 2em;

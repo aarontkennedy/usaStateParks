@@ -6,9 +6,23 @@ module.exports = function (app) {
     const axios = require("axios");
     const cheerio = require("cheerio");
 
+    // Require all models
+    const db = require("../../../models");
+
+    app.get("/admin/drop", function (req, res) {
+        db.StatePark.remove({}, (err) => { if (err) console.log(err); });
+        res.send("Drop Complete");
+    });
+
     // this function scrapes the state index page on wikipedia to get the 
     // link to the actual page of a state's state parks
-    app.get("/scrape", function (req, res) {
+    app.get("/admin/scrape", function (req, res) {
+
+        // would it be easier to just dump/drop the whole state
+        // park database and repopulate since I have to rescrape 
+        // everything anyways to find changes?
+        db.StatePark.remove({}, (err) => { if (err) console.log(err); });
+
         // First, we grab the body of the html with request
         const wikipedia = "https://en.wikipedia.org";
         const wikiStateParksIndexPage = wikipedia + "/wiki/Lists_of_state_parks_by_U.S._state";
@@ -20,59 +34,53 @@ module.exports = function (app) {
             const element = $("#mw-content-text ul")[0];
 
             $(element).find("a").each(function () {
-                // make this a promise
                 getStatesParks(
-                    $(this).text(),
-                    wikipedia + $(this).attr("href")
+                    $(this).text().trim(),
+                    wikipedia + $(this).attr("href").trim()
                 );
             });
 
-            // If we were able to successfully scrape and save an Article, send a message to the client
-            res.send("Scrape Complete");
+            res.send("Scraping...");
         });
     });
 
-    var temp = 0;
-
     function getStatesParks(state, url) {
-        // Alaska and Hawaii are stupid and don't put theirs in tables...
-        // ignore them for now
-        if (state == "Alaska" || state == "Hawaii") return; 
+        if (state == "Alaska" || state == "Hawaii") {
+            return getStateParksFromLists(state, url);
+        }
+        return getStatesParksFromTable(state, url);
+    }
+
+    function getStatesParksFromTable(state, url) {
+        if (state == "West Virginia") console.log("Attempting WV");
 
         // First, we grab the body of the html with request
         axios.get(url).then(function (response) {
-            console.log(state + " " + url);
             // Then, we load that into cheerio and save it to $ for a shorthand selector
             const $ = cheerio.load(response.data);
 
             // Now, we grab the #mw-content-text .wikitable tag, and do the following:
-            const table = $("#mw-content-text .wikitable");
-            const rows = Array.from(table.find("tr"));
-            let parkNameCol = null;
-            let parkCountyCol = null;
-            let parkYearCol = null;
+            const table = Array.from($(".wikitable"))[0];
+            const rows = Array.from($(table).find("tr"));
+            let parkNameCol = 0;
+            let parkLocationCol = null; // country/parish/island...
             let parkImageCol = null;
             let parkRemarksCol = null;
 
             // first row is the header info, figure out the columns
             $(rows[0]).children().each(function (i, element) {
                 const colText = $(this).text().trim();
-                console.log(colText);
+                //console.log(colText);
 
-                if (colText.includes("Park") || colText.includes("Name")) {
-                    parkNameCol = i;
+                if (state == "Kentucky") {
+                    parkNameCol = 1;
                 }
                 else if ((colText.includes("County") ||
                     colText.includes("Location") ||
                     colText.includes("Region") ||
                     colText.includes("Parish")) &&
-                    !parkCountyCol) {
-                    parkCountyCol = i;
-                }
-                else if ((colText.includes("Year") ||
-                    colText.includes("Date") ||
-                    colText.includes("Estab")) && !parkYearCol) {
-                    parkYearCol = i;
+                    !parkLocationCol) {
+                    parkLocationCol = i;
                 }
                 else if (colText.includes("Image")) {
                     parkImageCol = i;
@@ -81,41 +89,78 @@ module.exports = function (app) {
                     colText.includes("Description")) {
                     parkRemarksCol = i;
                 }
-
             });
 
-            // do we have valid columns for the following pieces of info
-            // we can't check others, not every table is the same...
-            if (parkNameCol === null) {
-                throw new Error("parkNameCol is null");
+            let arrayOfNewStateParks = [];
+            // now grab the actual rows of data
+            for (let i = 1; i < rows.length; i++) { // skip 0/the header
+
+                const columns = Array.from($(rows[i]).children());
+
+                const parkName = clean($(columns[parkNameCol]).text());
+
+                // sometimes there is a second row that holds acreage -not a park
+                if (parkName.toLowerCase() != "acres") {
+
+                    arrayOfNewStateParks.push(new db.StatePark({
+                        name: parkName,
+                        location: clean($(columns[parkLocationCol]).text()),
+                        state: state,
+                        country: "USA",
+                        imageURL: (parkImageCol ? cleanURL($(columns[parkImageCol]).text()) : null),
+                        remarks: (parkRemarksCol ? clean($(columns[parkRemarksCol]).text()) : null)
+                    }));
+                }
             }
-            if (!parkCountyCol) {
-                throw new Error("parkCountyCol is null");
-            }
 
-
-
-            // Save an empty result object
-            /*var result = {};
-      
-            // Add the text and href of every link, and save them as properties of the result object
-            result.title = $(this)
-              .children("a")
-              .text();
-            result.link = $(this)
-              .children("a")
-              .attr("href");
-      
-            // Create a new Article using the `result` object built from scraping
-            db.Article.create(result)
-              .then(function (dbArticle) {
-                // View the added result in the console
-                console.log(dbArticle);
-              })
-              .catch(function (err) {
-                // If an error occurred, send it to the client
-                return res.json(err);
-              });*/
+            db.StatePark.insertMany(arrayOfNewStateParks);
         });
     }
+
+    function clean(string) {
+        return string.trim().replace(/\[.*\]/g, "");
+    }
+
+    function cleanURL(string) {
+        const url = clean(string);
+        const patt = new RegExp(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/);
+        if (patt.test(url)) return url;
+        return null;
+    }
+
+    function getStateParksFromLists(state, url) {
+        //console.log(state);
+        // First, we grab the body of the html with request
+        axios.get(url).then(function (response) {
+            // Then, we load that into cheerio and save it to $ for a shorthand selector
+            const $ = cheerio.load(response.data);
+
+            let arrayOfNewStateParks = [];
+
+            $("ul").each(function (i, element) {
+
+                $(this).children().each(function (i, element) {
+                    const name = clean($(this).text());
+
+                    if ((name.includes("State") ||
+                        name.includes("Park")) &&
+                        !name.includes("\n") &&
+                        name != ("State symbols") &&
+                        name != ("State parks of Hawaii") &&
+                        name != ("Lists of state parks of the United States") &&
+                        name != ("State parks of Alaska") &&
+                        !name.startsWith("Alaska Department of Natural Resources")) {
+                        arrayOfNewStateParks.push(new db.StatePark({
+                            name: name,
+                            state: state,
+                            country: "USA"
+                        }));
+                    }
+                });
+            });
+
+            db.StatePark.insertMany(arrayOfNewStateParks);
+        });
+    }
+
 }

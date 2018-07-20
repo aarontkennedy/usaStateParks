@@ -3,16 +3,16 @@
 const express = require("express");
 const exphbs = require("express-handlebars");
 const bodyParser = require("body-parser");
-//var mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 // Require all models
-//var db = require("./models");
+const db = require("./models");
 // Connect to the Mongo DB
-//mongoose.connect("mongodb://localhost/usaStateParks");
+mongoose.connect("mongodb://localhost/usaStateParks");
 
 // Sets up the Express App
 // =========================================================
-let app = express();
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Set Handlebars as the default templating engine.

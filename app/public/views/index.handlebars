@@ -15,9 +15,10 @@
 <div class="row">
     <div class="col text-center">
         <h2>Try it now!</h2>
-        <form class="form-group">
-            <label class="form-control-lg" for="apiRequest">https://swapi.co/api/</label>
-            <input class="form-control-lg" type="text" id="apiRequest" placeholder="parks/mn/">
+        <form id="sample" class="form-group">
+            <label id="apiRequestHost" class="form-control-lg" for="apiRequest"></label>
+            <input class="form-control-lg" type="text" id="apiRequest" placeholder="/api/park/v1/?state=mn" value="/api/park/v1/?state=mn"
+                required>
             <button class="form-control-lg btn-secondary" type="submit">Request</button>
         </form>
     </div>
@@ -27,7 +28,7 @@
 <div class="row">
     <div class="col">
         <h4>Result:</h4>
-        <div id="queryResult">Error, didn't load properly.</div>
+        <pre id="queryResult">Error, didn't load properly.</pre>
     </div>
 </div>
 <div class="row"></div>
@@ -37,16 +38,17 @@
     <div class="col-12 col-md-4">
         <h3>What is this?</h3>
 
-        <p>The Star Wars API, or "swapi" (Swah-pee) is the world's first quantified and programmatically-accessible data source
-            for all the data from the Star Wars canon universe!</p>
+        <p>The USA State Parks API is a programmatically-accessible data source for all the state parks in the USA. Data was
+            gathered from Wikipedia.</p>
 
-        <p>We've taken all the rich contextual stuff from the universe and formatted into something easier to consume with software.
-            Then we went and stuck an API on the front so you can access it all!</p>
+        <p>You now have the state parks searchable and formatted into something easier to consume with software (JSON).</p>
     </div>
     <div class="col-12 col-md-4">
         <h3>How can I use it?</h3>
 
-        <p>All the data is accessible through our HTTP web API. Consult our documentation if you'd like to get started.</p>
+        <p>All the data is accessible through the HTTP web API. Currently, you 
+        can search by state (/api/park/v1/?state=mn).
+        </p>
 
         <p>Helper libraries for popular programming languages are also provided so you can consume swapi in your favourite programming
             language, in a style that suits you.</p>
