@@ -57,7 +57,7 @@ form.label, form.input, form.button {
   display:inline-block;
 }
 
-#queryResult {
+.queryResult {
   font-family: "Courier New", Courier, monospace;
   min-height: 300px;
   max-height: 400px;

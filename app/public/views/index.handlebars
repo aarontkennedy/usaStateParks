@@ -1,5 +1,5 @@
 <div class="jumbotron mt-0 mp-0">
-    <h1>USA => State Parks</h1>
+    <h1>USA => State&nbsp;Parks</h1>
     <h2>A USA State Parks API</h2>
 
     <ul>
@@ -15,9 +15,9 @@
 <div class="row">
     <div class="col text-center">
         <h2>Try it now!</h2>
-        <form id="sample" class="form-group">
-            <label id="apiRequestHost" class="form-control-lg" for="apiRequest"></label>
-            <input class="form-control-lg" type="text" id="apiRequest" placeholder="/api/park/v1/?state=mn" value="/api/park/v1/?state=mn"
+        <form id="sample1" class="form-group">
+            <label class="apiRequestHost form-control-lg" for="apiRequest1"></label>
+            <input class="form-control-lg" type="text" id="apiRequest1" placeholder="/api/park/v1/?state=mn" value="/api/park/v1/?state=mn"
                 required>
             <button class="form-control-lg btn-secondary" type="submit">Request</button>
         </form>
@@ -28,10 +28,9 @@
 <div class="row">
     <div class="col">
         <h4>Result:</h4>
-        <pre id="queryResult">Error, didn't load properly.</pre>
+        <pre id="queryResult1" class="queryResult">Error, didn't load properly.</pre>
     </div>
 </div>
-<div class="row"></div>
 
 <!-- More info here -->
 <div class="row">
@@ -39,9 +38,9 @@
         <h3>What is this?</h3>
 
         <p>The USA State Parks API is a programmatically-accessible data source for all the state parks in the USA. Data was
-            scraped from Wikipedia.</p>
+            scraped from <a href="https://en.wikipedia.org/wiki/Lists_of_state_parks_by_U.S._state" target="_blank">Wikipedia</a>. Latitude and longitude are populated by Google Maps Geocoding API. <a href="/documentation">See the documenation for more information.</a></p>
 
-        <p>You now have the state parks searchable and formatted into something easier to consume (JSON). Search by state name or id.</p>
+        <p>You now have the state parks searchable and formatted into something easier to consume (JSON). Search by state name, id, or location.</p>
     </div>
     <div class="col-12 col-md-4">
         <h3>How can I use it?</h3>
@@ -51,9 +50,11 @@
         
         <p>You can also search by a park's unique id.  Use id instead of state for the query parameter.</p>
 
+        <p>Even better, you can search by location.  Just give a latitude and longintude.  <a href="/documentation">See the documenation for more information.</a></p>
+
     </div>
     <div class="col-12 col-md-4">
         <h3>How can I support this? </h3>
-        <p>This project is open source and you can contribute on GitHub.</p>
+        <p>This project is open source and you can contribute on <a href="https://github.com/aarontkennedy/usaStateParks">GitHub</a>.</p>
     </div>
 </div>

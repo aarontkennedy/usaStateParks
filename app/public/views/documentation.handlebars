@@ -1,0 +1,48 @@
+<h1>Documentation</h1>
+
+<h2>Introduction</h2>
+<p>There are three ways to use this API to find State Parks: by state, by id, and by location.  You hit the endpoint with the correct query paramenters and you will get back an array of JSON objects representing the state parks.</p>
+
+<h2>Query by State</h2>
+<p>Give the endpoint the query parameter state and the full name of a state or its two letter abbreviation.</p>
+<!-- try out the api for state search-->
+<div class="row">
+    <div class="col text-center">
+        <form id="sample1" class="form-group">
+            <label class="apiRequestHost form-control-lg" for="apiRequest1"></label>
+            <input class="form-control-lg" type="text" id="apiRequest1" placeholder="/api/park/v1/?state=mn" value="/api/park/v1/?state=mn"
+                required>
+            <button class="form-control-lg btn-secondary" type="submit">Request</button>
+        </form>
+    </div>
+</div>
+
+<!-- see the query results here for state search-->
+<div class="row">
+    <div class="col">
+        <h4>Result:</h4>
+        <pre id="queryResult1" class="queryResult">Error, didn't load properly.</pre>
+    </div>
+</div>
+
+<h2>Query by Location</h2>
+<p>Give the endpoint the query parameters latitude, longitude, and optionally radiuskm.  radiuskm is the number of kilometers you want to search from the point of latitude and longitude.</p>
+<!-- try out the api for state search-->
+<div class="row">
+    <div class="col text-center">
+        <form id="sample2" class="form-group">
+            <label class="apiRequestHost form-control-lg" for="apiRequest2"></label>
+            <input class="form-control-lg" type="text" id="apiRequest2" placeholder="/api/park/v1/?lat=44.8624675&lng=-92.7835367&radiuskm=10" value="/api/park/v1/?lat=44.8624675&lng=-92.7835367&radiuskm=10"
+                required>
+            <button class="form-control-lg btn-secondary" type="submit">Request</button>
+        </form>
+    </div>
+</div>
+
+<!-- see the query results here for state search-->
+<div class="row">
+    <div class="col">
+        <h4>Result:</h4>
+        <pre id="queryResult2" class="queryResult">Error, didn't load properly.</pre>
+    </div>
+</div>

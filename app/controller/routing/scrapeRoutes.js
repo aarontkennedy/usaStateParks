@@ -12,10 +12,12 @@ module.exports = function (app) {
     // Require all models
     const db = require("../../../models");
 
+    /*
+    -- Dangerous
     app.get("/admin/drop", function (req, res) {
         db.StatePark.remove({}, (err) => { if (err) console.log(err); });
         res.send("Drop Complete");
-    });
+    });*/
 
     // this function scrapes the state index page on wikipedia to get the 
     // link to the actual page of a state's state parks
@@ -170,7 +172,15 @@ module.exports = function (app) {
 
         db.StatePark.count({}, function (err, c) {
             console.log('Count is ' + c);
-            res.send(c);
+            res.send(`Total: ${c}`); 
+        });
+    });
+
+    app.get("/admin/countLatLngPopulated", function (req, res) {
+
+        db.StatePark.find({}).then(function (results) {
+            const array = results.filter((park) => !park.hasOwnProperty('longitudeLatitude'));
+            res.send(`Total with Lat/Lng: ${array.length}`);
         });
     });
 
@@ -178,8 +188,8 @@ module.exports = function (app) {
 
         db.StatePark.find({}).then(function (results) {
             //console.log(results);
-            results.filter((park) => (!park.longitudeLatitude)).forEach(function (park, index) {
-                //console.log(park);
+            results.filter((park) => !park.hasOwnProperty('longitudeLatitude')).forEach(function (park, index) {
+                console.log(park);
 
                 // try to get around the rate limiting
                 setTimeout(function () {
@@ -197,7 +207,7 @@ module.exports = function (app) {
                             console.log("Geocode Error: " + err);
                         }
                     });
-                }, 500 * index);
+                }, 200 * index);
             });
 
             res.send("Populating Lat/Lng...");
