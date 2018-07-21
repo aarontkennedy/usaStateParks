@@ -3,11 +3,19 @@ module.exports = function (app) {
     // Require all models
     const db = require("../../../models");
     const tableByAbbr = require("datasets-us-states-abbr-names");
-    const tableByName = require('datasets-us-states-names-abbr');
 
     app.get("/api/park/v1/", function (req, res) {
         let state = req.query.state;
+        let id = req.query.id;
 
+        if (state) searchByState(state, res);
+        else if (id) searchByID(id, res);
+        else {
+            return res.json(new Error('Missing query parameter like state or id.'));
+        }
+    });
+
+    function searchByState(state, res) {
         if (state.length == 2) { // abbreviation
             // Get the state name:
             state = tableByAbbr[state.toUpperCase()];
@@ -18,22 +26,9 @@ module.exports = function (app) {
                 return res.json(new Error('Unrecognized state abbreviation. Value: `' + state + '`.'));
             }
         }
-        else {
-            // valid state?
-            // Get the state abbreviation:
-            state = state.toLowerCase();
-            state = state.charAt(0).toUpperCase() + state.slice(1);
-            const abbr = tableByName[state];
 
-            // Ensure a valid state name was provided...
-            if (abbr === void 0) {
-                console.log('Unrecognized state. Value: `' + abbr + '`.');
-                return res.json(new Error('Unrecognized state. Value: `' + abbr + '`.'));
-            }
-        }
-
-        console.log(state);
-        db.StatePark.find({ state: state })
+        //console.log(state);
+        db.StatePark.find({ state: new RegExp(state, "i") })
             .then(function (results) {
                 // If all Users are successfully found, send them back to the client
                 res.json(results);
@@ -42,5 +37,19 @@ module.exports = function (app) {
                 // If an error occurs, send the error back to the client
                 res.json(err);
             });
-    });
+    }
+
+    function searchByID(id, res) {
+
+        //console.log(id);
+        db.StatePark.find({ _id: id })
+            .then(function (results) {
+                // If all Users are successfully found, send them back to the client
+                res.json(results);
+            })
+            .catch(function (err) {
+                // If an error occurs, send the error back to the client
+                res.json(err);
+            });
+    }
 };

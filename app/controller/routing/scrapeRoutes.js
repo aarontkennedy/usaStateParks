@@ -5,6 +5,9 @@ module.exports = function (app) {
     // It works on the client and on the server
     const axios = require("axios");
     const cheerio = require("cheerio");
+    const googleMapsClient = require('@google/maps').createClient({
+        key: 'AIzaSyAHt5AFO892XZ10Dzne5Vdhk8QsWnj5URM'
+    });
 
     // Require all models
     const db = require("../../../models");
@@ -35,8 +38,8 @@ module.exports = function (app) {
 
             $(element).find("a").each(function () {
                 getStatesParks(
-                    $(this).text().trim(),
-                    wikipedia + $(this).attr("href").trim()
+                    clean($(this).text()),
+                    wikipedia + $(this).attr("href")
                 );
             });
 
@@ -52,7 +55,6 @@ module.exports = function (app) {
     }
 
     function getStatesParksFromTable(state, url) {
-        if (state == "West Virginia") console.log("Attempting WV");
 
         // First, we grab the body of the html with request
         axios.get(url).then(function (response) {
@@ -101,7 +103,6 @@ module.exports = function (app) {
 
                 // sometimes there is a second row that holds acreage -not a park
                 if (parkName.toLowerCase() != "acres") {
-
                     arrayOfNewStateParks.push(new db.StatePark({
                         name: parkName,
                         location: clean($(columns[parkLocationCol]).text()),
@@ -118,7 +119,9 @@ module.exports = function (app) {
     }
 
     function clean(string) {
-        return string.trim().replace(/\[.*\]/g, "");
+        // ran into a problem with unicode space 160...
+        return string.trim().replace(/\[.*\]/g, "").replace(/\s/g /* all kinds of spaces*/,
+            " " /* ordinary space */);
     }
 
     function cleanURL(string) {
@@ -163,4 +166,42 @@ module.exports = function (app) {
         });
     }
 
+    app.get("/admin/count", function (req, res) {
+
+        db.StatePark.count({}, function (err, c) {
+            console.log('Count is ' + c);
+            res.send(c);
+        });
+    });
+
+    app.get("/admin/populateLatLng", function (req, res) {
+
+        db.StatePark.find({}).then(function (results) {
+            //console.log(results);
+            results.filter((park) => (!park.longitudeLatitude)).forEach(function (park, index) {
+                //console.log(park);
+
+                // try to get around the rate limiting
+                setTimeout(function () {
+                    // Geocode an address.
+                    googleMapsClient.geocode({
+                        address: `${park.name}, ${park.state}, ${park.country}`
+                    }, function (err, response) {
+                        if (!err) {
+                            console.log(response.json.results);
+                            console.log(response.json.results[0].geometry.location);
+                            db.StatePark.updateOne({ _id: park._id },
+                                { longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat] }).exec();
+                        }
+                        else {
+                            console.log("Geocode Error: " + err);
+                        }
+                    });
+                }, 500 * index);
+            });
+
+            res.send("Populating Lat/Lng...");
+        });
+
+    });
 }
