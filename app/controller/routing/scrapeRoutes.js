@@ -5,8 +5,11 @@ module.exports = function (app) {
     // It works on the client and on the server
     const axios = require("axios");
     const cheerio = require("cheerio");
+
+    const googleAPIkey = require("./googleAPIkey.json");
+
     const googleMapsClient = require('@google/maps').createClient({
-        key: 'AIzaSyAHt5AFO892XZ10Dzne5Vdhk8QsWnj5URM'
+        key: (process.env.googleAPIkey || googleAPIkey.key)
     });
 
     // Require all models
@@ -26,6 +29,10 @@ module.exports = function (app) {
         // would it be easier to just dump/drop the whole state
         // park database and repopulate since I have to rescrape 
         // everything anyways to find changes?
+
+        // Yes, Andrey, I know you want to save the files in the database
+        // and check if they have changed, but that takes time and $.
+        // I need a secretary.
         db.StatePark.remove({}, (err) => { if (err) console.log(err); });
 
         // First, we grab the body of the html with request
@@ -172,14 +179,14 @@ module.exports = function (app) {
 
         db.StatePark.count({}, function (err, c) {
             console.log('Count is ' + c);
-            res.send(`Total: ${c}`); 
+            res.send(`Total: ${c}`);
         });
     });
 
     app.get("/admin/countLatLngPopulated", function (req, res) {
 
         db.StatePark.find({}).then(function (results) {
-            const array = results.filter((park) => !park.hasOwnProperty('longitudeLatitude'));
+            const array = results.filter((park) => park.hasOwnProperty('longitudeLatitude'));
             res.send(`Total with Lat/Lng: ${array.length}`);
         });
     });
@@ -188,30 +195,34 @@ module.exports = function (app) {
 
         db.StatePark.find({}).then(function (results) {
             //console.log(results);
-            results.filter((park) => !park.hasOwnProperty('longitudeLatitude')).forEach(function (park, index) {
-                console.log(park);
+            let arrayOfParks = results.filter((park) => !park.hasOwnProperty('longitudeLatitude'));
 
-                // try to get around the rate limiting
-                setTimeout(function () {
-                    // Geocode an address.
-                    googleMapsClient.geocode({
-                        address: `${park.name}, ${park.state}, ${park.country}`
-                    }, function (err, response) {
-                        if (!err) {
-                            console.log(response.json.results);
-                            console.log(response.json.results[0].geometry.location);
-                            db.StatePark.updateOne({ _id: park._id },
-                                { longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat] }).exec();
-                        }
-                        else {
-                            console.log("Geocode Error: " + err);
-                        }
-                    });
-                }, 200 * index);
-            });
+            recursivelyGeocodeArrayElements(arrayOfParks);
 
             res.send("Populating Lat/Lng...");
         });
 
     });
+
+    function recursivelyGeocodeArrayElements(array) {
+        if (array.length < 1) return; // done!
+
+        const park = array.pop();
+        // Geocode an address.
+        googleMapsClient.geocode({
+            address: `${park.name}, ${park.state}, ${park.country}`
+        }, function (err, response) {
+            if (!err) {
+                console.log(response.json.results);
+                console.log(response.json.results[0].geometry.location);
+                db.StatePark.updateOne({ _id: park._id },
+                    { longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat] }).exec();
+
+                setTimeout(() => {recursivelyGeocodeArrayElements(array)}, 200 * index);
+            }
+            else {
+                console.log("Geocode Error: " + err + ". Giving up...");
+            }
+        });
+    }
 }
