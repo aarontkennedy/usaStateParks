@@ -183,28 +183,25 @@ module.exports = function (app) {
         });
     });
 
-    app.get("/admin/countLatLngPopulated", function (req, res) {
+    app.get("/admin/countLatLngNeedPopulating", function (req, res) {
 
-        db.StatePark.find({}).then(function (results) {
-            const array = results.filter((park) => park.hasOwnProperty('longitudeLatitude'));
-            res.send(`Total with Lat/Lng: ${array.length}`);
+        db.StatePark.find({longitudeLatitude: null}).then(function (results) {
+            res.send(`Total without Lat/Lng: ${results.length}`);
         });
     });
 
     app.get("/admin/populateLatLng", function (req, res) {
+        // db.inventory.find( { item: null } )
+        db.StatePark.find({longitudeLatitude: null}).then(function (results) {
+            recursivelyGeocodeArrayElements(results);
 
-        db.StatePark.find({}).then(function (results) {
-            //console.log(results);
-            let arrayOfParks = results.filter((park) => !park.hasOwnProperty('longitudeLatitude'));
-
-            recursivelyGeocodeArrayElements(arrayOfParks);
-
-            res.send("Populating Lat/Lng...");
+            res.send("Populating Lat/Lng... "+results.length+" to do...");
         });
 
     });
 
     function recursivelyGeocodeArrayElements(array) {
+        console.log("recursivelyGeocodeArrayElements... "+array.length+" to do...");
         if (array.length < 1) return; // done!
 
         const park = array.pop();
@@ -218,7 +215,7 @@ module.exports = function (app) {
                 db.StatePark.updateOne({ _id: park._id },
                     { longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat] }).exec();
 
-                setTimeout(() => {recursivelyGeocodeArrayElements(array)}, 200 * index);
+                setTimeout(() => {recursivelyGeocodeArrayElements(array)}, 200);
             }
             else {
                 console.log("Geocode Error: " + err + ". Giving up...");
