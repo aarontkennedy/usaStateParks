@@ -185,23 +185,23 @@ module.exports = function (app) {
 
     app.get("/admin/countLatLngNeedPopulating", function (req, res) {
 
-        db.StatePark.find({longitudeLatitude: null}).then(function (results) {
+        db.StatePark.find({ longitudeLatitude: null }).then(function (results) {
             res.send(`Total without Lat/Lng: ${results.length}`);
         });
     });
 
     app.get("/admin/populateLatLng", function (req, res) {
         // db.inventory.find( { item: null } )
-        db.StatePark.find({longitudeLatitude: null}).then(function (results) {
+        db.StatePark.find({ longitudeLatitude: null }).then(function (results) {
             recursivelyGeocodeArrayElements(results);
 
-            res.send("Populating Lat/Lng... "+results.length+" to do...");
+            res.send("Populating Lat/Lng... " + results.length + " to do...");
         });
 
     });
 
     function recursivelyGeocodeArrayElements(array) {
-        console.log("recursivelyGeocodeArrayElements... "+array.length+" to do...");
+        console.log("recursivelyGeocodeArrayElements... " + array.length + " to do...");
         if (array.length < 1) return; // done!
 
         const park = array.pop();
@@ -215,11 +215,34 @@ module.exports = function (app) {
                 db.StatePark.updateOne({ _id: park._id },
                     { longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat] }).exec();
 
-                setTimeout(() => {recursivelyGeocodeArrayElements(array)}, 200);
+                setTimeout(() => { recursivelyGeocodeArrayElements(array) }, 200);
             }
             else {
                 console.log("Geocode Error: " + err + ". Giving up...");
             }
         });
     }
+
+    app.get("/admin/downloadBackup", function (req, res) {
+        //console.log(id);
+        db.StatePark.find({})
+            .then(function (results) {
+                // If all Users are successfully found, send them back to the client
+                res.json(results);
+            })
+            .catch(function (err) {
+                // If an error occurs, send the error back to the client
+                res.json(err);
+            });
+    });
+
+    /*
+    Not implemented yet.
+
+    app.get("/admin/restoreBackup", function (req, res) {
+        
+        let backupJSON = require("../../models/backup.json");
+        db.StatePark.insertMany(arrayOfNewStateParks);
+    });
+    */
 }
