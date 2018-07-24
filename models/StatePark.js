@@ -17,6 +17,7 @@ var StateParkSchema = new Schema({
       message: '{VALUE} is not an integer value'
     }
   },*/
+  address: { type: String/*, required: true*/ },
   longitudeLatitude: {
     type: [Number],  // [<longitude>, <latitude>]
     index: '2d'    // create the geospatial index

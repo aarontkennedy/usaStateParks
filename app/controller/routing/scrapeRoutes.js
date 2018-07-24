@@ -183,23 +183,17 @@ module.exports = function (app) {
         });
     });
 
-    app.get("/admin/countLatLngNeedPopulating", function (req, res) {
-
-        db.StatePark.find({ longitudeLatitude: null }).then(function (results) {
-            res.send(`Total without Lat/Lng: ${results.length}`);
-        });
-    });
-
-    app.get("/admin/populateLatLng", function (req, res) {
+    app.get("/admin/populateLocation", function (req, res) {
         // db.inventory.find( { item: null } )
-        db.StatePark.find({ longitudeLatitude: null }).then(function (results) {
+        db.StatePark.find({ address: null }).then(function (results) {
             recursivelyGeocodeArrayElements(results);
 
-            res.send("Populating Lat/Lng... " + results.length + " to do...");
+            res.send("Populating Address from Google... " + results.length + " to do...");
         });
 
     });
 
+    // now I want not just the lat/lng, but the much nicer address to be stored
     function recursivelyGeocodeArrayElements(array) {
         console.log("recursivelyGeocodeArrayElements... " + array.length + " to do...");
         if (array.length < 1) return; // done!
@@ -213,7 +207,10 @@ module.exports = function (app) {
                 console.log(response.json.results);
                 console.log(response.json.results[0].geometry.location);
                 db.StatePark.updateOne({ _id: park._id },
-                    { longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat] }).exec();
+                    {
+                        address: response.json.results[0].address.formatted_address,
+                        longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat]
+                    }).exec();
 
                 setTimeout(() => { recursivelyGeocodeArrayElements(array) }, 200);
             }
