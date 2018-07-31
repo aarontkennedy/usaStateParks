@@ -12,15 +12,21 @@ module.exports = function (app) {
         key: (process.env.googleAPIkey || googleAPIkey.key)
     });
 
+    const tableByAbbr = require("datasets-us-states-abbr-names");
+
     // Require all models
     const db = require("../../../models");
 
     /*
     -- Dangerous
     app.get("/admin/drop", function (req, res) {
-        db.StatePark.remove({}, (err) => { if (err) console.log(err); });
-        res.send("Drop Complete");
+        dropAllTheData();
     });*/
+
+    async function dropAllTheData() {
+        console.log("dropAllTheData() called");
+        await db.StatePark.remove({}, (err) => { if (err) console.log(err); });
+    }
 
     // this function scrapes the state index page on wikipedia to get the 
     // link to the actual page of a state's state parks
@@ -33,7 +39,7 @@ module.exports = function (app) {
         // Yes, Andrey, I know you want to save the files in the database
         // and check if they have changed, but that takes time and $.
         // I need a secretary.
-        db.StatePark.remove({}, (err) => { if (err) console.log(err); });
+        dropAllTheData();
 
         // First, we grab the body of the html with request
         const wikipedia = "https://en.wikipedia.org";
@@ -204,7 +210,7 @@ module.exports = function (app) {
             address: `${park.name}, ${park.state}, ${park.country}`
         }, function (err, response) {
             if (!err) {
-                console.log(response.json.results);
+                console.log(response.json.results[0].address.formatted_address);
                 console.log(response.json.results[0].geometry.location);
                 db.StatePark.updateOne({ _id: park._id },
                     {
@@ -233,13 +239,73 @@ module.exports = function (app) {
             });
     });
 
-    /*
-    Not implemented yet.
-
     app.get("/admin/restoreBackup", function (req, res) {
-        
-        let backupJSON = require("../../models/backup.json");
-        db.StatePark.insertMany(arrayOfNewStateParks);
+
+        dropAllTheData();
+
+        let backupJSON = require("../../../models/backup.json");
+        //console.log(backupJSON);
+        db.StatePark.insertMany(backupJSON)
+            .then(function (results) {
+                res.send("Backup restored.");
+            })
+            .catch(function (err) {
+                // If an error occurs, send the error back to the client
+                res.json(err);
+            });
     });
-    */
+
+    app.get("/admin/populateNationalParks", function (req, res) {
+        const states = Object.keys(tableByAbbr);
+        states.push("DC");
+        let url = "https://api.nps.gov/api/v1/parks?limit=100&fields=images%2ClatLong%2Caddresses&api_key=7iaGGOvQmuUQWwppC6tU5RfYsBWzcWWeakpcZcqo";
+
+        states.forEach((s) => {
+
+            axios.get(`${url}&stateCode=${s}`).then((response) => {
+                let stateFullName = "District of Columbia";
+                if (s != "DC") {
+                    stateFullName = tableByAbbr[s.toUpperCase()];
+                }
+                //console.log(response.data);
+                console.log(stateFullName + ":" + response.data.total);
+
+                const parksToInsert = response.data.data.map((p) => {
+                    let lat = null;
+                    let lng = null;
+                    if (p.latLong) {
+                        const latLong = p.latLong.split(",");
+                        lat = parseFloat(latLong[0].replace('lat:', '').trim());
+                        lng = parseFloat(latLong[1].replace('long:', '').trim());
+                    }
+                    let address = null;
+                    if (p.addresses && p.images.length > 0) {
+                        //console.log(p);
+                        const a = p.addresses[0];
+                        address = `${a.line1} ${a.line2}, ${a.city}, ${a.stateCode}, ${a.postalCode}`;
+                    }
+
+                    return new db.StatePark({
+                        name: p.fullName,
+                        location: p.directionsInfo + " " + p.directionsUrl,
+                        longitudeLatitude: lat && lng ? [lng, lat] : null,
+                        address: address,
+                        state: stateFullName,
+                        country: "USA",
+                        imageURL: (p.images.length > 0 ? p.images[0].url : null),
+                        remarks: p.description + " " + p.url
+                    });
+                });
+
+                db.StatePark.insertMany(parksToInsert);
+                //console.log(parksToInsert);
+                console.log(stateFullName + ":" + parksToInsert.length + " attempted to insert");
+            })
+                .catch(function (err) {
+                    console.log(url);
+                    console.log(err);
+                });
+        });
+        res.send("Populating...");
+    });
 }

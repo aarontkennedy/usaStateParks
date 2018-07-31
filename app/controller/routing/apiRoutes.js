@@ -50,8 +50,13 @@ module.exports = function (app) {
 
     function searchByState(state, res) {
         if (state.length == 2) { // abbreviation
-            // Get the state name:
-            state = tableByAbbr[state.toUpperCase()];
+            if (state == "DC") {
+                state = "District of Columbia";
+            }
+            else {
+                // Get the state name:
+                state = tableByAbbr[state.toUpperCase()];
+            }
 
             // Ensure a valid abbreviation was provided...
             if (state === void 0) {
