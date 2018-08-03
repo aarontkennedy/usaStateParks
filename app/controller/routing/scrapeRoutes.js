@@ -205,22 +205,29 @@ module.exports = function (app) {
         if (array.length < 1) return; // done!
 
         const park = array.pop();
-        // Geocode an address.
+
+        console.log("Geocode an address: "+`${park.name}, ${park.state}, ${park.country}`);
         googleMapsClient.geocode({
             address: `${park.name}, ${park.state}, ${park.country}`
         }, function (err, response) {
             if (!err) {
-                console.log(response.json.results[0].address.formatted_address);
+                //console.log(response);
+                console.log(response.json.results[0]);
+                console.log(response.json.results[0].formatted_address);
                 console.log(response.json.results[0].geometry.location);
                 db.StatePark.updateOne({ _id: park._id },
                     {
-                        address: response.json.results[0].address.formatted_address,
+                        address: response.json.results[0].formatted_address,
                         longitudeLatitude: [response.json.results[0].geometry.location.lng, response.json.results[0].geometry.location.lat]
                     }).exec();
 
                 setTimeout(() => { recursivelyGeocodeArrayElements(array) }, 200);
             }
             else {
+                console.log(Object.keys(err));
+                console.log(err.status);
+                console.log(err.headers);
+                console.log(err.json);
                 console.log("Geocode Error: " + err + ". Giving up...");
             }
         });
